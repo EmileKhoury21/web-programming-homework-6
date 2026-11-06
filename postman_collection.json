@@ -1,0 +1,837 @@
+{
+  "info": {
+    "name": "Château Fakra Wine API",
+    "description": "Assignment 6. Run the requests in order, the create request saves the id for the next ones.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List all wines",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200',()=>pm.response.to.have.status(200));",
+              "pm.test('returns an array',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ]
+        }
+      }
+    },
+    {
+      "name": "List with filters (color, search, sort, limit)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200',()=>pm.response.to.have.status(200));",
+              "pm.test('only red wines',()=>pm.response.json().forEach(w=>pm.expect(w.color).to.eql('rouge')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines?color=rouge&search=fruit&sort=name&limit=5",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ],
+          "query": [
+            {
+              "key": "color",
+              "value": "rouge"
+            },
+            {
+              "key": "search",
+              "value": "fruit"
+            },
+            {
+              "key": "sort",
+              "value": "name"
+            },
+            {
+              "key": "limit",
+              "value": "5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "List with bad color -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines?color=green",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ],
+          "query": [
+            {
+              "key": "color",
+              "value": "green"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "List with bad limit -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines?limit=abc",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "abc"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create wine -> 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201',()=>pm.response.to.have.status(201));",
+              "const w=pm.response.json();pm.collectionVariables.set('wineId',w._id);pm.test('server set _id and createdAt',()=>{pm.expect(w._id).to.be.a('string');pm.expect(w.createdAt).to.be.a('string');});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Rosé\",\n  \"slug\": \"test-rose\",\n  \"color\": \"rosé\",\n  \"varietals\": [\n    \"Cinsault\"\n  ],\n  \"format\": \"750 mL\",\n  \"serveTemp\": \"Served at 10°C\",\n  \"description\": \"Created from Postman.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create with missing fields -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));",
+              "pm.test('lists each missing field',()=>pm.expect(pm.response.json().details).to.have.lengthOf(3));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"format\": \"750 mL\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create with bad color -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Bad\",\n  \"slug\": \"bad-color\",\n  \"color\": \"green\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create with duplicate slug -> 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 409',()=>pm.response.to.have.status(409));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Rosé\",\n  \"slug\": \"test-rose\",\n  \"color\": \"rosé\",\n  \"varietals\": [\n    \"Cinsault\"\n  ],\n  \"format\": \"750 mL\",\n  \"serveTemp\": \"Served at 10°C\",\n  \"description\": \"Created from Postman.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create with malformed JSON -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"oops\","
+        }
+      }
+    },
+    {
+      "name": "Get one wine -> 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200',()=>pm.response.to.have.status(200));",
+              "pm.test('is the created wine',()=>pm.expect(pm.response.json().slug).to.eql('test-rose'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get with invalid id -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/not-an-id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "not-an-id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get missing wine -> 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 404',()=>pm.response.to.have.status(404));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/000000000000000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "000000000000000000000000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Replace wine (PUT) -> 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200',()=>pm.response.to.have.status(200));",
+              "const w=pm.response.json();pm.test('fields not sent are reset',()=>{pm.expect(w.name).to.eql('Test Rosé Reserve');pm.expect(w.format).to.eql('');pm.expect(w.varietals).to.eql([]);});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Rosé Reserve\",\n  \"slug\": \"test-rose\",\n  \"color\": \"rosé\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Replace with missing fields -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Only a name\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Replace missing wine -> 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 404',()=>pm.response.to.have.status(404));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/000000000000000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "000000000000000000000000"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Ghost\",\n  \"slug\": \"ghost\",\n  \"color\": \"doux\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Update wine (PATCH) -> 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200',()=>pm.response.to.have.status(200));",
+              "const w=pm.response.json();pm.test('other fields are kept',()=>{pm.expect(w.serveTemp).to.eql('Served at 8°C');pm.expect(w.name).to.eql('Test Rosé Reserve');});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"serveTemp\": \"Served at 8°C\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Update with bad color -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"color\": \"green\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Update with empty body -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 400',()=>pm.response.to.have.status(400));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "Update missing wine -> 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 404',()=>pm.response.to.have.status(404));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/000000000000000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "000000000000000000000000"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"format\": \"375 mL\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Delete wine -> 204",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 204',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete same wine again -> 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 404',()=>pm.response.to.have.status(404));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get deleted wine -> 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 404',()=>pm.response.to.have.status(404));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/wines/{{wineId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "wines",
+            "{{wineId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Unknown route -> 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 404',()=>pm.response.to.have.status(404));",
+              "pm.test('has a JSON error message',()=>pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/nothing",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "nothing"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "wineId",
+      "value": ""
+    }
+  ]
+}
